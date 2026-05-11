@@ -1,209 +1,117 @@
 # claude-ai-automations
-production automation stack — runs 24/7, no human operator required
+Production LaunchAgent daemons + Python automation pipelines running DigiMinds 24/7 — lead gen, content, KPI monitoring, GitHub sync, competitor intel.
 
-![Stack](https://img.shields.io/badge/stack-LaunchAgent_%7C_n8n_%7C_Python_%7C_cron-blue?style=flat&labelColor=000) ![LaunchAgents](https://img.shields.io/badge/LaunchAgents-5_permanent-orange?style=flat&labelColor=555) ![Scheduled](https://img.shields.io/badge/scheduled_agents-6_autonomous-green?style=flat&labelColor=555) ![n8n](https://img.shields.io/badge/n8n-self--hosted-red?style=flat&labelColor=555)
+![daemons](https://img.shields.io/badge/LaunchAgents-8_always_on-blue?style=flat&labelColor=555) ![scheduled](https://img.shields.io/badge/scheduled_engines-6-green?style=flat&labelColor=555) ![python](https://img.shields.io/badge/python_scripts-12-orange?style=flat&labelColor=555) ![company](https://img.shields.io/badge/DigiMinds-agency-red?style=flat&labelColor=555)
 
-DigiMinds full automation stack — LaunchAgents that never stop, Claude scheduled tasks that run even when the machine is off, n8n workflows for API integrations, and Python scripts for data operations. Everything from lead generation to client invoicing to competitor monitoring runs without HMZ touching a keyboard.
+[Concepts](#-concepts) · [Hot](#-hot) · [Schedule](#️-schedule) · [Tips](#-tips-and-tricks-22) · [Replaced](#️-startups--businesses) · [Stars](#star-history)
 
-[LaunchAgents](#launchagents) · [Scheduled Agents](#scheduled) · [n8n Workflows](#n8n) · [Python Scripts](#python) · [Health Monitoring](#health) · [Tips](#tips) · [Gotchas](#gotchas)
+---
 
-## 🧠 AUTOMATION LAYERS
+## 🧠 CONCEPTS
 
-| Layer | Technology | Always-on | Trigger | Failure Mode |
-|---|---|---|---|---|
-| System Services | macOS LaunchAgent | Yes | Boot/crash restart | Auto-restart via KeepAlive |
-| AI Agents | Claude Scheduled Tasks | Yes (cloud) | Cron schedule | Anthropic infrastructure |
-| API Integrations | n8n (self-hosted) | Yes | Webhook/cron | n8n error log + Slack alert |
-| Batch Processing | Python scripts | No | Manual / cron | Exit code + log |
-| Data Extraction | Apify Actors | On demand | API call | Actor run log |
+| Feature | Location | Description |
+|---------|----------|-------------|
+| [**LaunchAgent Daemons**](launchagents/) | `~/Library/LaunchAgents/ai.hmz.*.plist` | 8 always-on macOS daemons — KeepAlive=true auto-restarts within 30s of crash |
+| [**GitHub Portfolio Sync**](launchagents/ai.hmz.github-portfolio-sync.plist) | `ai.hmz.github-portfolio-sync.plist` | Daily 6:30 AM — syncs all 45 bin scripts, skills, agents, LaunchAgents to GitHub |
+| [**OpenClaw Gateway**](launchagents/ai.openclaw.gateway.plist) | `ai.openclaw.gateway.plist` | Always-on bridge: Composio + MCP + Paperclip — persistent session state |
+| [**Paperclip CEO**](launchagents/ai.hmz.paperclip.plist) | `ai.hmz.paperclip.plist` | CEO loop daemon at port 3100 — RunAtLoad=true, KeepAlive=true |
+| [**Lead Engine**](launchagents/ai.hmz.paperclip-lead-engine.plist) | `ai.hmz.paperclip-lead-engine.plist` | Daily 7:30 AM — Apollo+LinkedIn scrape → enrich → ICP score → CRM |
+| [**Content Engine**](launchagents/ai.hmz.paperclip-content-engine.plist) | `ai.hmz.paperclip-content-engine.plist` | Daily 8:00 AM — trends → angle → generate → quality gate → LinkedIn schedule |
+| [**KPI Monitor**](launchagents/ai.hmz.paperclip-kpi-monitor.plist) | `ai.hmz.paperclip-kpi-monitor.plist` | Daily 6:00 PM — 28 KPI health checks, threshold alerts, CEO escalation |
+| [**Trends Scanner**](launchagents/ai.hmz.paperclip-trends-scanner.plist) | `ai.hmz.paperclip-trends-scanner.plist` | Mon/Wed/Fri 6 AM — platform changes, market signals, macro trends |
+| [**Python Scripts**](scripts/) | `scripts/` | `digiminds_audit.py` `create_ads.py` `populate_ads.py` `per-prospect-pdf.py` — offline pipeline tools |
 
-<a id="launchagents"></a>
-## ⚙️ LAUNCHAGENTS (Always-on system services)
+### 🔥 Hot
 
-| LaunchAgent | Port | Working Dir | Auto-Restart |
-|---|---|---|---|
-| `ai.hmz.paperclip` | 3100 | `~/installed-repos/paperclip` | Yes (KeepAlive) |
-| `ai.openclaw.gateway` | 51827 | `~/installed-repos/openclaw` | Yes (KeepAlive) |
-| `ai.hmz.ollama` | 11434 | system | Yes (KeepAlive) |
-| `ai.hmz.github-portfolio-sync` | — | `~/` | No (daily cron) |
-| `ai.hmz.open-design` | 51827 | `~/installed-repos/open-design` | Yes (KeepAlive) |
+| Feature | Location | Description |
+|---------|----------|-------------|
+| [**auto-github-push**](../claude-ai-system/automations/bin/auto-github-push) | PostToolUse hook | Every Write/Edit to `~/.claude/bin/` auto-pushes to GitHub — replaces manual github-sync for new scripts |
+| [**KeepAlive + RunAtLoad**](launchagents/) | All `.plist` files | Both flags required — KeepAlive alone doesn't start on boot, RunAtLoad alone doesn't restart on crash |
+| [**Token scrubbing**](../claude-ai-system/automations/bin/github-sync) | `github-sync` | Strips `ghp_*` `sk-*` `pat*` tokens from LaunchAgent plists before GitHub commit — automatic OPSEC |
 
-**Check all services:**
-```bash
-launchctl list | grep ai.hmz
-# Format: PID  ExitCode  Label
-# PID = number → running
-# PID = "-"    → stopped
-# ExitCode > 0 → crashed
-```
+---
 
-**Restart a crashed service:**
-```bash
-launchctl stop ai.hmz.paperclip
-launchctl start ai.hmz.paperclip
-# OR force reload:
-launchctl unload ~/Library/LaunchAgents/ai.hmz.paperclip.plist
-launchctl load ~/Library/LaunchAgents/ai.hmz.paperclip.plist
-```
+## ⚙️ SCHEDULE
 
-**Paperclip plist key settings:**
-```xml
-<key>KeepAlive</key><true/>           ← auto-restart on crash
-<key>RunAtLoad</key><true/>           ← start on boot
-<key>ThrottleInterval</key><integer>5</integer>  ← min 5s between restarts
-<key>StandardOutPath</key>
-  <string>~/.paperclip/instances/default/logs/server.log</string>
-<key>StandardErrorPath</key>
-  <string>~/.paperclip/instances/default/logs/server-error.log</string>
-```
+| Daemon | Schedule | Runtime | Output |
+|--------|----------|---------|--------|
+| GitHub Portfolio Sync | Daily 6:30 AM | ~3 min | Updated claude-ai-system repo |
+| Paperclip CEO Loop | Every 6h | ~2 min | Decisions log, task assignments |
+| Lead Engine | Daily 7:30 AM | ~6 min | 10-30 ICP-scored leads in CRM |
+| Content Engine | Daily 8:00 AM | ~3 min | LinkedIn post scheduled 10 AM |
+| Intel Engine | Daily 10:00 AM | ~5 min | Competitor intel brief |
+| KPI Monitor | Daily 6:00 PM | ~2 min | 28-KPI scorecard, alerts |
+| Trends Scanner | Mon/Wed/Fri 6 AM | ~4 min | Trends brief → CEO context |
+| OpenClaw Gateway | Always-on | — | Composio + MCP bridge |
 
-<a id="scheduled"></a>
-## 💡 CLAUDE SCHEDULED AGENTS
+---
 
-Six agents run on Anthropic infrastructure — no machine required:
+## 💡 TIPS AND TRICKS (22)
 
-■ **CEO Strategy Loop** (every 6h)
-```
-Schedule: 0 */6 * * *
-Action:   Pull company state from Paperclip API
-          Scan Groq/Gemini for market intel (Tier 0)
-          Create 3+ priority tasks for the day
-          Hire new agent if skill gap detected
-          Log decisions to ~/.paperclip/ceo-decisions.log
-Output:   3+ tasks in Paperclip, decision log entry
-```
+[LaunchAgent](#tips-la) · [Scheduling](#tips-sched) · [Scripts](#tips-scripts) · [Pipelines](#tips-pipe) · [Debug](#tips-debug)
 
-■ **Lead Enrichment Engine** (7:30 AM daily)
-```
-Schedule: 30 7 * * *
-Action:   Source 10+ leads from LinkedIn/Reddit/Indeed signals
-          Score each 0-100 (budget + fit + timing + decision-maker)
-          Enrich top 10 via Apollo/web search
-          Create Paperclip BDM tasks for high-score leads
-          Write outreach drafts → ~/Downloads/outreach-{date}.txt
-Output:   10+ enriched leads, BDM tasks, outreach file
-```
+<a id="tips-la"></a>■ **LaunchAgent Design (6)**
 
-■ **LinkedIn Content Engine** (8:00 AM daily)
-```
-Schedule: 0 8 * * *
-Action:   Find today's trending topic in digital marketing/AI
-          Generate LinkedIn post (hook + value + CTA structure)
-          Format for 1,300-char optimal length
-          Save → ~/Downloads/linkedin-post-{date}.txt
-Output:   Ready-to-post LinkedIn content
-```
+| Tip | Source |
+|-----|--------|
+| Always use both `KeepAlive=true` AND `RunAtLoad=true` — never one without the other | [macOS SOP](launchagents/) |
+| `StartCalendarInterval` is more reliable than cron on macOS — survives sleep/wake | [macOS docs](launchagents/) |
+| Set `StandardOutPath` and `StandardErrorPath` — silent failures are the worst failures | [Ops rule](launchagents/) |
+| `EnvironmentVariables` in plist must include `HOME` + `PATH` — LaunchAgents don't inherit shell env | [Common gotcha](launchagents/) |
+| Scrub tokens from plist before github-sync commits — use `sed` on `GITHUB_TOKEN` patterns | [OPSEC](../claude-ai-system/automations/bin/github-sync) |
+| `launchctl list \| grep ai.hmz` — verify all 8 daemons running at every session start | [auto-troubleshoot](../claude-ai-system/automations/bin/auto-troubleshoot) |
 
-■ **Competitor Intel Engine** (10:00 AM daily)
-```
-Schedule: 0 10 * * *
-Action:   Monitor top 5 competitor websites for pricing/service changes
-          Track their job postings (signals for expansion)
-          Generate 3 strategic recommendations
-          Log to Paperclip AI Automation project
-Output:   Intel report + 3 strategic tasks
-```
+<a id="tips-sched"></a>■ **Scheduling (4)**
 
-■ **KPI Health Monitor** (6:00 PM daily)
-```
-Schedule: 0 18 * * *
-Action:   Pull all KPI metrics from Paperclip
-          Compare to targets (leads, revenue, ROAS, content)
-          Auto-create corrective tasks for any KPI miss
-          Generate daily CEO summary
-          Save → ~/Downloads/paperclip-daily-summary-{date}.txt
-Output:   Corrective tasks + daily summary file
-```
+| Tip | Source |
+|-----|--------|
+| Lead engine at 7:30 AM not 7:00 AM — gives CEO loop (6h, starting midnight) time to finish | [Schedule logic](launchagents/) |
+| Content engine at 8:00 AM publishes at 10 AM — 2h buffer for quality gate failures | [Schedule logic](launchagents/) |
+| Trends scanner Mon/Wed/Fri only — daily would waste Apify credits on low-signal days | [Cost optimization](launchagents/) |
+| KPI monitor at 6 PM — after business hours data is fully populated for the day | [Data logic](launchagents/) |
 
-■ **Market Trends Scanner** (Mon/Wed/Fri 6AM)
-```
-Schedule: 0 6 * * 1,3,5
-Action:   Scan 8 topics: AI tools, PPC changes, content trends,
-          platform algorithm updates, competitor funding, hiring trends,
-          regulation changes, client industry news
-          Create opportunity tasks for actionable signals
-          Auto-add new Goals for major revenue opportunities
-Output:   8 trend briefs + opportunity tasks
-```
+<a id="tips-scripts"></a>■ **Python Scripts (5)**
 
-<a id="n8n"></a>
-## 🔧 N8N WORKFLOW INVENTORY
+| Tip | Source |
+|-----|--------|
+| All scripts use `set -e` or Python `sys.exit(1)` on error — LaunchAgent catches exit code | [Error handling](scripts/) |
+| Save all PDF outputs to `~/Downloads/` — never Desktop | [HMZ rule](scripts/) |
+| ReportLab PDFs: always `save_document()` before any export step | [reportlab-pdf-master](../claude-ai-skills/) |
+| Use Apify actors for all scraping inside scripts — never raw requests | [Tool routing](scripts/) |
+| Add `time.sleep(1)` between Apollo API calls — bulk operations hit rate limits silently | [Apollo gotcha](scripts/) |
 
-| Workflow | Trigger | Integration Chain | Output |
-|---|---|---|---|
-| Lead Intake → CRM | Webhook (Typeform) | Typeform → Apollo enrich → HubSpot create → Slack notify | Contact in HubSpot + Slack alert |
-| Weekly Client Report | Cron (Mon 9AM) | GA4 → Google Ads → ReportLab PDF → Gmail → Notion log | PDF email + Notion entry |
-| Invoice Processor | Email trigger | Gmail → Stripe lookup → QuickBooks → Slack | Categorized invoice + payment status |
-| Content Publisher | Paperclip task | Draft file → LinkedIn API → Twitter/X → tracking | Posts published + engagement logged |
-| Competitor Price Monitor | Daily cron | Web scrape → compare prev → Notion update → Slack if changed | Price history + change alerts |
-| Lead Score Updater | Daily cron | HubSpot → score recalc → priority tags update | Updated CRM pipeline |
+<a id="tips-pipe"></a>■ **Pipelines (4)**
 
-<a id="python"></a>
-## 🐍 PYTHON AUTOMATION SCRIPTS
+| Tip | Source |
+|-----|--------|
+| Every pipeline step must be idempotent — safe to re-run without creating duplicates | [Design principle](scripts/) |
+| Log every step: `echo "[engine] step completed at $(date)" >> ~/Library/Logs/x.log` | [Ops rule](scripts/) |
+| Paperclip API at port 3100 = pipeline state store — don't use files for intermediate state | [Architecture](../hmz-digiminds-ceo/) |
+| Tier 0 models for all LLM calls inside pipelines — Groq for fast, Gemini for analysis | [G0DM0D3 routing](../hmz-g0dm0d3/) |
 
-| Script | Location | Runtime | Purpose |
-|---|---|---|---|
-| `digiminds_audit_v3_pdf.py` | `~/` | ~45s | 360° client audit → 11-page ReportLab PDF |
-| `create_ads_from_scratch.py` | `~/` | ~30s | Google + Meta ad creation from brief |
-| `populate_ads.py` | `~/` | ~20s | Bulk ad population from XLSX |
-| `oztechwork_audit.py` | `~/` | ~60s | Per-client audit runner (oztechwork) |
-| `saifee_audit.py` | `~/` | ~60s | Per-client audit runner (saifee) |
-| `digiminds_audit.py` | `~/` | ~30s | Core audit logic |
+<a id="tips-debug"></a>■ **Debug (3)**
 
-<a id="health"></a>
-## 📊 HEALTH MONITORING
+| Tip | Source |
+|-----|--------|
+| LaunchAgent exit=256 = script returned error — check `~/Library/Logs/<name>-error.log` | [Debug SOP](../claude-ai-system/automations/bin/auto-troubleshoot) |
+| `launchctl start ai.hmz.<name>` to test-trigger without waiting for schedule | [Debug](launchagents/) |
+| Mutex lock for long scripts: `[ -f /tmp/script.lock ] && exit 0; touch /tmp/script.lock` | [Concurrency](scripts/) |
 
-**Auto-troubleshoot hook** (fires every session via UserPromptSubmit):
-```bash
-~/.claude/bin/auto-troubleshoot
-# Checks: all LaunchAgent exit codes
-# Reports: any with exit > 0 → tells Claude to investigate
-```
+---
 
-**Manual health check:**
-```bash
-# All LaunchAgents
-launchctl list | grep ai.hmz | awk '{print $1, $2, $3}'
-# PID ExitCode Label — exit 256 = crash
+## ☠️ STARTUPS / BUSINESSES
 
-# Paperclip API
-curl -s http://127.0.0.1:3100/api/health | jq .
+| Feature | Replaced |
+|-|-|
+| **macOS LaunchAgent daemons** | [n8n](https://n8n.io), [Zapier](https://zapier.com), [Make](https://make.com) — cloud-only, not local-first, monthly fees |
+| **Lead engine (daily 7:30 AM)** | [Clay](https://clay.com), [Instantly](https://instantly.ai) — manual trigger, per-lead pricing |
+| **Content engine (daily 8 AM)** | [Buffer](https://buffer.com), [Hootsuite](https://hootsuite.com), [Taplio](https://taplio.com) — scheduling only, no AI generation |
+| **Competitor intel (daily 10 AM)** | [Crayon](https://crayon.co), [Klue](https://klue.com) — $500+/mo, no ad library integration |
+| **KPI monitor (daily 6 PM)** | [Databox](https://databox.com), [Klipfolio](https://klipfolio.com) — passive dashboards, no escalation |
+| **GitHub auto-sync** | Manual `git push`, [GitHub Desktop](https://desktop.github.com) |
 
-# Ollama
-curl -s http://localhost:11434/api/tags | jq '.models[].name'
+---
 
-# OpenClaw
-curl -s http://127.0.0.1:51827/health
+## Star History
 
-# Scheduled tasks (via Claude)
-# /schedule list
-```
-
-**Log locations:**
-```bash
-~/.paperclip/instances/default/logs/server.log       # Paperclip stdout
-~/.paperclip/instances/default/logs/server-error.log # Paperclip stderr
-~/.paperclip/ceo-decisions.log                       # CEO loop decisions
-~/Library/Logs/                                       # LaunchAgent system logs
-```
-
-<a id="tips"></a>
-## 💡 TIPS
-
-| Tip | Note |
-|---|---|
-| Always use `KeepAlive` + `ThrottleInterval` together — KeepAlive without throttle causes rapid crash loops on config errors | ThrottleInterval=5 minimum |
-| Scheduled agents should write state to disk after each run — they start fresh each time, no memory between runs | `~/Downloads/agent-state-{date}.json` |
-| n8n webhook nodes need `https` for external triggers — local `http` only works for internal calls | Use ngrok tunnel or Vercel Edge Function |
-| Python scripts in `~/` are NOT auto-uploaded to GitHub by github-sync — explicitly add to tracked list | Edit `github-sync` script |
-| If a LaunchAgent exits with code 256, check the plist WorkingDirectory path — most 256 exits are "directory not found" | |
-
-## ☠️ GOTCHAS
-
-| Gotcha | Fix |
-|---|---|
-| `launchctl load` succeeds even with invalid plist — errors only appear when the service tries to start | Run `plutil -lint ~/Library/LaunchAgents/<plist>` before loading |
-| Scheduled tasks timeout at 5min — network-heavy tasks (web scraping, API calls) fail silently | Break into sub-tasks or use Apify actors for scraping |
-| n8n workflows lose Slack OAuth on token expiry (~60 days) — all workflows using Slack fail silently | Add token refresh monitoring in n8n health workflow |
-| CEO Loop creates tasks with no `projectId` when Paperclip API is slow to respond | Add 3s retry before creating tasks |
-| github-sync uploads `settings.local.json` which may contain device-specific paths — breaks on other machines | Add settings.local.json to .gitignore |
+[![Star History Chart](https://api.star-history.com/svg?repos=hmzainjamil/claude-ai-automations&type=Date)](https://star-history.com/#hmzainjamil/claude-ai-automations&Date)
