@@ -1,148 +1,159 @@
-# claude-ai-automations
+<p align="center">
+  <img src="https://img.shields.io/badge/HMZ-AUTOMATIONS-F86606?style=for-the-badge&logoColor=white" alt="HMZ Automations" height="60">
+</p>
 
-> **Complete automation infrastructure** — scripts, LaunchAgents, hooks, and pipelines running 24/7 on HMZ AI Agency's system.
+<h1 align="center">Claude AI Automations</h1>
 
-Part of [claude-ai-system](https://github.com/hmzainjamil/claude-ai-system).
+<p align="center">
+  <strong>Core automation scripts powering a zero-human AI agency — daily sync, model routing, multi-LLM burst, LaunchAgents</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/hmzainjamil"><img src="https://img.shields.io/badge/By-HMZ-6C3EE8?style=for-the-badge" alt="By HMZ"></a>
+  <a href="#scripts"><img src="https://img.shields.io/badge/Scripts-25%2B-20A34E?style=for-the-badge" alt="25+ Scripts"></a>
+  <a href="#launchagents"><img src="https://img.shields.io/badge/LaunchAgents-12-246DFF?style=for-the-badge" alt="12 LaunchAgents"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Runs%20Daily-6%3A30%20AM-F86606?style=for-the-badge" alt="Runs Daily"></a>
+</p>
+
+<p align="center">
+  <a href="#overview">Overview</a> &bull;
+  <a href="#scripts">Scripts</a> &bull;
+  <a href="#launchagents">LaunchAgents</a> &bull;
+  <a href="#quick-start">Quick Start</a> &bull;
+  <a href="#use-cases">Use Cases</a> &bull;
+  <a href="#installation">Installation</a>
+</p>
 
 ---
 
 ## Overview
 
-Every script, daemon, and hook that powers the autonomous operation of the HMZ AI system — from daily GitHub syncs to BDM sweeps, skill routing, and session-level intelligence.
+**Claude AI Automations** is the operational backbone of the HMZ AI system. These scripts run silently in the background every day, keeping the entire infrastructure fresh, synced, and optimized — without any manual intervention.
+
+Key automations:
+- **`github-sync`** — Syncs all skills, agents, workflows, and scripts to GitHub daily at 6:30 AM. Auto-discovers new locally installed repos and creates GitHub repos for them. Audits all README files for quality (15,000+ char threshold).
+- **`llm-burst`** — Fires 15 AI models in parallel (Groq, Gemini, DeepSeek, GPT4All, Ollama, Kimi K2, and more). Judge picks winner. Claude tokens preserved.
+- **`skill-auto-activate`** — Runs on every Claude Code prompt. Keyword-matches → auto-activates relevant skills before response.
+- **`skill-on` / `skill-off`** — Activate and deactivate individual skills on demand.
+- **`free-coding-models`** — Live-pings 170 free AI models across 16 providers. Returns fastest available. Auto-writes winner into coding tool config.
 
 ---
 
-## Directory Structure
+## Scripts
 
-```
-automations/
-├── bin/                    ← Executable scripts
-│   ├── github-sync         ← Daily portfolio sync to GitHub (all repos)
-│   ├── skill-auto-activate ← Keyword router (fires on every Claude prompt)
-│   ├── skill-on            ← Activate a skill
-│   ├── skill-off           ← Deactivate a skill
-│   ├── skill-search        ← Find skills by keyword
-│   ├── llm-burst           ← Multi-LLM parallel query (15 models)
-│   ├── run-scheduled-task  ← Execute scheduled agent tasks
-│   ├── github-portfolio-init ← One-time GitHub repo creation + auth
-│   ├── website-builder-setup ← Premium web design stack installer
-│   └── auto-troubleshoot   ← Session health checker
-└── launchagents/           ← macOS LaunchAgent plists
-    ├── ai.hmz.github-portfolio-sync.plist  ← Daily sync at 6:30 AM
-    ├── ai.openclaw.gateway.plist           ← OpenClaw bridge (always-on)
-    ├── ai.hmz.paperclip.plist              ← Paperclip AI server
-    └── ai.hmz.ollama.plist                 ← Ollama local LLM (always-on)
-```
+| Script | What it does | Runs |
+|---|---|---|
+| `github-sync` | Full system → GitHub push. README audit. New repo discovery. | Daily 6:30 AM |
+| `llm-burst` | 15-model parallel burst. Judge scoring. Best answer wins. | On demand |
+| `skill-auto-activate` | Keyword detect → auto-load skills before every prompt | Every prompt |
+| `skill-on` | Activate a dormant skill | On demand |
+| `skill-off` | Deactivate a skill after task | On demand |
+| `skill-search` | Find skills by keyword across skills-archive | On demand |
+| `free-coding-models` | Live-ping 170 free AI models across 16 providers | On demand |
+| `agency-run` | Orchestrate all 210 agents for a complex task | On demand |
+| `pdf-report` | Generate 11-page ReportLab audit PDF | On demand |
+| `readme-audit` | Check all GitHub repos for README quality | Daily (in github-sync) |
 
 ---
 
-## Core Scripts
+## LaunchAgents
 
-### github-sync
-**Trigger:** Daily at 6:30 AM (LaunchAgent) + on-demand
+macOS LaunchAgent plists in `automations/launchagents/`:
 
-Syncs the complete HMZ AI system to GitHub:
-1. Active skills → `claude-ai-system/skills-active/`
-2. Skills archive → deduplicated SKILL.md files
-3. Agents → markdown/yaml only
-4. Scheduled tasks → full content
-5. Automation scripts → `automations/bin/`
-6. LaunchAgent plists → with credential scrubbing (ghp_/pat/sk- redacted)
-7. Installed repos → README/SKILL.md only, capped at 50 repos
-8. n8n workflow manifest → categorized index of 8,159 workflows
-9. Credential strip → all API keys/tokens redacted before commit
-10. Git commit + push → `github.com/hmzainjamil/claude-ai-system`
+| LaunchAgent | Schedule | What it does |
+|---|---|---|
+| `ai.hmz.github-portfolio-sync` | Daily 6:30 AM | Runs `github-sync` — full system push |
+| `ai.openclaw.gateway` | At login | OpenClaw AI gateway — persistent |
+| `ai.hmz.paperclip` | Manual | Paperclip AI zero-human company platform |
+| `ai.hmz.ollama` | At login | Ollama local AI (llama3 on GPU) |
+| `ai.hmz.n8n` | At login | n8n local workflow server |
+| `ai.hmz.open-design` | At login | Open Design server (port 51827) |
 
-Also pushes deduplicated skills to: `hmz-skills-archive`
+---
 
-### skill-auto-activate
-**Trigger:** `UserPromptSubmit` hook — fires on EVERY Claude prompt
-
-Keyword-routes prompts to relevant skills:
-```
-ads/ppc/google ads/meta    → ads-strategy, ads-copy, ads-creative
-seo/geo/ranking            → geo, geo-technical, geo-content
-lead gen/prospect/crm      → leads-generator, outbound-dm-writer
-agency/client/proposal     → agency, agency-client, agency-pipeline
-apify/scrape/extract       → apify-actor-development
-code/bug/build/deploy      → launch-optimized (code agent stack)
-report/pdf/document        → report-creator
-website/landing page       → website-builder-setup, premium-web-design
-```
-
-### llm-burst
-**Purpose:** Fire 15 AI models in parallel → judge picks best → Claude synthesizes
+## Quick Start
 
 ```bash
-~/.claude/bin/llm-burst "your prompt"
-~/.claude/bin/llm-burst --models groq,gemini,deepseek "focused prompt"
-~/.claude/bin/llm-burst --json "prompt" | jq '.all[] | {model,score}'
+# Manual GitHub sync (normally runs automatically at 6:30 AM)
+~/.claude/bin/github-sync
+
+# Multi-LLM burst — 15 models, best answer wins
+~/.claude/bin/llm-burst "Write a cold email for digital agency services"
+
+# Find fastest free AI model right now
+free-coding-models
+
+# Activate a skill
+~/.claude/bin/skill-on ads-strategy
+
+# Search for skills by topic
+~/.claude/bin/skill-search "lead generation"
+
+# Run all 210 agents on a complex task
+~/.claude/bin/agency-run "Full GTM strategy for SaaS product targeting SMBs"
 ```
 
-**Models:** Groq llama3-70b · Gemini 2.0 Flash · DeepSeek-V3 · GPT-4o-mini · GLM-4.5-air · Gemma4 · 7x GPT4All local models
-
-### run-scheduled-task
-**Purpose:** Execute remote agent tasks on cron schedule
-
 ---
 
-## LaunchAgent Schedule
+## Use Cases
 
-| LaunchAgent | Schedule | Purpose |
+| Goal | Script | Command |
 |---|---|---|
-| `ai.hmz.github-portfolio-sync` | Daily 6:30 AM | Sync all repos to GitHub |
-| `ai.openclaw.gateway` | Always-on (KeepAlive) | OpenClaw AI gateway bridge |
-| `ai.hmz.paperclip` | Always-on (KeepAlive) | Paperclip AI orchestration server |
-| `ai.hmz.ollama` | Always-on (KeepAlive) | Local Ollama LLM (llama3, mistral) |
+| **Push all changes to GitHub** | `github-sync` | `~/.claude/bin/github-sync` |
+| **Get best AI answer cheaply** | `llm-burst` | `llm-burst "your prompt"` |
+| **Find cheapest fast model** | `free-coding-models` | `free-coding-models` |
+| **Activate paid media mode** | `skill-on` | `skill-on ads-strategy` |
+| **Run 210 agents in parallel** | `agency-run` | `agency-run "task description"` |
+| **Generate a PDF audit** | `pdf-report` | `pdf-report client.com` |
+| **Check README quality** | `readme-audit` | Runs inside `github-sync` |
 
 ---
 
-## Hook System
+## github-sync Deep Dive
 
-Claude Code hooks fire automatically on session events:
+`github-sync` is the most critical automation in the system. On each run it:
 
-| Hook | Trigger | Action |
-|---|---|---|
-| `UserPromptSubmit` | Every prompt | `skill-auto-activate` + OODA + L99 |
-| `SessionStart` | Session open | Health check, model availability scan |
-| `Stop` | Session end | `auto-learn` → write learnings to memory |
-| `PreToolUse` | Before tool call | Security check, credential guard |
+1. Syncs active skills → `skills-active/`
+2. Deduplicates and syncs skills archive → `skills-archive/`
+3. Syncs all 210 agents → `agents/`
+4. Syncs scheduled tasks → `scheduled-tasks/`
+5. Syncs all automation scripts → `automations/bin/`
+6. Syncs LaunchAgent plists (with credential scrubbing)
+7. Rebuilds the n8n workflow manifest (8,000+ workflows categorized)
+8. Strips all API keys, tokens, secrets before commit
+9. Git commit + push to `claude-ai-system`
+10. **README audit** — checks all 27+ repos for README size ≥ 15,000 chars
+11. **New repo discovery** — finds local repos in `~/installed-repos/` not on GitHub → creates them + pushes professional README
 
 ---
 
-## Credential Security
-
-All automation scripts enforce credential stripping before any Git commit:
+## Installation
 
 ```bash
-# Patterns scrubbed:
-ghp_[A-Za-z0-9]{20,}      → [REDACTED_GITHUB_TOKEN]
-pat[A-Za-z0-9._]{20,}     → [REDACTED_PAT]
-sk-[A-Za-z0-9]{20,}       → [REDACTED_SK]
-API_KEY = "..."            → API_KEY = "[REDACTED]"
-SECRET = "..."             → SECRET = "[REDACTED]"
-TOKEN = "..."              → TOKEN = "[REDACTED]"
+# Clone the automations
+git clone https://github.com/hmzainjamil/claude-ai-automations.git
+
+# Install bin scripts
+cp automations/bin/* ~/.claude/bin/
+chmod +x ~/.claude/bin/*
+
+# Install LaunchAgents
+cp automations/launchagents/ai.hmz.github-portfolio-sync.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/ai.hmz.github-portfolio-sync.plist
 ```
 
 ---
 
-## Token Economy
+## Resources
 
-Every automation enforces the **MANDATE: minimize Claude token consumption**:
+- **[claude-ai-system](https://github.com/hmzainjamil/claude-ai-system)** — Full system repo (synced by these scripts)
+- **[claude-ai-skills](https://github.com/hmzainjamil/claude-ai-skills)** — Skills managed by these scripts
+- **[claude-ai-agents](https://github.com/hmzainjamil/claude-ai-agents)** — Agents managed by these scripts
 
-- Sub-tasks → routed to Tier 0 (Groq/Gemini/DeepSeek/GPT4All local)
-- Web extraction → Apify MCP (zero Claude tokens)
-- Parallel execution → single round-trip, multiple results
-- Session compression → `compact-guard` + `caveman` compression
+## License
 
-**Result: 75-95% Claude token savings across all automated workflows.**
-
----
-
-## Full System
-
-[claude-ai-system](https://github.com/hmzainjamil/claude-ai-system) | [claude-ai-skills](https://github.com/hmzainjamil/claude-ai-skills) | [claude-ai-agents](https://github.com/hmzainjamil/claude-ai-agents)
+MIT
 
 ---
 
-*Auto-updated daily by github-sync at 6:30 AM — HMZ AI Agency*
+<p align="center">Built by <a href="https://github.com/hmzainjamil">Hafiz Muhammad Zulqarnain</a> &mdash; HMZ AI Agency</p>
