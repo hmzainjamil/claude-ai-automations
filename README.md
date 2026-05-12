@@ -1,227 +1,116 @@
 # claude-ai-automations
+> LaunchAgents, cron jobs, and scheduled workflows — 12 persistent macOS automations running 24/7.
 
-![Version](https://img.shields.io/badge/version-2.0-blue?style=flat&labelColor=555)
-![Workflows](https://img.shields.io/badge/n8n_workflows-8159-purple?style=flat&labelColor=555)
-![Status](https://img.shields.io/badge/status-active-brightgreen?style=flat&labelColor=555)
-![License](https://img.shields.io/badge/license-MIT-orange?style=flat&labelColor=555)
+[![launchagents](https://img.shields.io/badge/launchagents-12-blue?style=flat&labelColor=555)](launchagents/)
+[![workflows](https://img.shields.io/badge/workflows-8-green?style=flat&labelColor=555)](workflows/)
+[![plist](https://img.shields.io/badge/plist-macOS-orange?style=flat&labelColor=555)](launchagents/)
+[![mae](https://img.shields.io/badge/MAE-daily--ops-purple?style=flat&labelColor=555)](workflows/)
+[![license](https://img.shields.io/badge/license-MIT-lightgrey?style=flat&labelColor=555)](LICENSE)
 
-> **8,159 n8n workflows + MAE automation engine** — every business process automated. Email, CRM, social, Slack, Shopify, data, reporting, lead gen, and more. Zero-human ops layer.
+[concepts](#concepts) · [architecture](#architecture) · [tips](#tips) · [startups](#startups) · [star](#star)
 
 ---
 
-## 🧠 CONCEPTS
+## 🧠 CONCEPTS <a id="concepts"></a>
 
 | Feature | Location | Description |
 |---|---|---|
-| [n8n Workflows](workflows/) | `workflows/` | 8,159 JSON workflow files covering every automation category |
-| [Workflow Index](workflow_index.txt) | `workflow_index.txt` | Full-text searchable index of all 8,159 workflows |
-| [MAE Engine](bin/mae) | `bin/mae` | Master Automation Engine — 12-agent swarm + synthesis |
-| [TCC Queue](bin/tcc) | `bin/tcc` | Task queue — add/fire/list/retry/purge/blast tasks |
-| [DigiMinds Daily](workflows/digiminds-daily.json) | `workflows/digiminds-daily.json` | Full daily ops workflow — all divisions run in sequence |
-| [Email Automation](workflows/email/) | `workflows/email/` | 874 Gmail/email automation workflows |
-| [Slack Automation](workflows/slack/) | `workflows/slack/` | 328 Slack notification and bot workflows |
-| [Social Automation](workflows/social/) | `workflows/social/` | 197 Instagram/Twitter/LinkedIn/TikTok workflows |
-| [Lead Gen Automation](workflows/leads/) | `workflows/leads/` | 121 lead flows — Apollo, Hunter, LinkedIn scraping |
-| [Shopify Automation](workflows/shopify/) | `workflows/shopify/` | 82 Shopify/WooCommerce order and inventory workflows |
-| [Telegram Automation](workflows/telegram/) | `workflows/telegram/` | 309 Telegram bot and notification workflows |
-| [Data Automation](workflows/data/) | `workflows/data/` | Sheets, Airtable, NocoDB, Notion sync pipelines |
-| [CRM Automation](workflows/crm/) | `workflows/crm/) | HubSpot, Salesforce, Pipedrive sync workflows |
-| [Codex Agents](bin/codex-agents/) | `bin/codex-agents/` | 10 Codex-style agent scripts for full SaaS/ops automation |
-| [Agent Registry](agents/registry.json) | `agents/registry.json` | 18 registered automation agents with routing rules |
-| [n8n Routes](tcc-routes/routes.json) | `tcc-routes/routes.json` | Task → automation agent routing map |
-| [LaunchAgent Plists](launchd/) | `launchd/` | macOS LaunchAgent configs for always-on automations |
-| [Webhook Triggers](webhooks/) | `webhooks/` | Inbound webhook handlers for external system triggers |
-| [Cron Jobs](cron/) | `cron/` | Scheduled automation configs — hourly, daily, weekly |
-| [AI Creative Pipeline](bin/ads-creative/) | `bin/ads-creative/` | uni1-image-ad + arcads + kie-ai + meta-ads-spy stack |
-| [OpenCLI Adapters](bin/opencli/) | `bin/opencli/` | 90+ site adapters via OpenCLI — zero LLM cost per call |
-| [Composio Actions](bin/composio/) | `bin/composio/` | 3000+ tool actions for any SaaS via Composio |
-| [Paperclip Sync](bin/paperclip-sync.sh) | `bin/paperclip-sync.sh` | Auto-saves every automation run to Paperclip company OS |
-| [MAE Status](bin/tcc-dashboard) | `bin/tcc-dashboard` | Full system status: queue, RAM, models, last run time |
-| [Auto-Push Hook](hooks/auto-github-push) | `hooks/auto-github-push` | PostToolUse hook — new bin/ files auto-synced to GitHub |
+| [**ai.hmz.mae-daily**](launchagents/ai.hmz.mae-daily.plist) | `launchagents/` | Runs `mae daily` at 8am every day — full DigiMinds ops automation |
+| [**ai.hmz.sys-optimize-daily**](launchagents/ai.hmz.sys-optimize-daily.plist) | `launchagents/` | Cache cleanup at 3am daily — npm, pip, brew, logs, TCC old tasks |
+| [**ai.hmz.ollama**](launchagents/ai.hmz.ollama.plist) | `launchagents/` | Keeps Ollama running permanently — KeepAlive=true, GPU-accelerated |
+| [**ai.hmz.paperclip**](launchagents/ai.hmz.paperclip.plist) | `launchagents/` | Paperclip CEO layer at http://127.0.0.1:3100 — on-demand |
+| [**ai.hmz.openclaw.gateway**](launchagents/ai.openclaw.gateway.plist) | `launchagents/` | OpenClaw gateway — persistent agent relay |
+| [**ai.hmz.github-portfolio-sync**](launchagents/ai.hmz.github-portfolio-sync.plist) | `launchagents/` | Auto-syncs new scripts/skills to GitHub repos daily |
+| [**digiminds-daily workflow**](workflows/digiminds-daily.json) | `workflows/` | 4-step daily ops: check_systems → queue_tasks → run_pending → status_report |
+| [**n8n workflows**](workflows/n8n/) | `workflows/n8n/` | 8,159 n8n workflow JSONs indexed and ready to import |
 
 ### 🔥 Hot
 
 | Feature | Location | Description |
 |---|---|---|
-| [MAE Daily Ops](workflows/digiminds-daily.json) | `workflows/digiminds-daily.json` | One command = full company runs itself for the day |
-| [8159 n8n Workflows](workflow_index.txt) | `workflow_index.txt` | Every business process already automated — just search and deploy |
-| [Codex Agent Stack](bin/codex-agents/) | `bin/codex-agents/` | 10 agents: SaaS builder, lead gen, ops, support, content, bug fixer |
-| [OpenCLI 90+ Adapters](bin/opencli/) | `bin/opencli/` | Browse any site without LLM — GitHub, LinkedIn, Notion, Jira, more |
-| [Composio 3000+ Actions](bin/composio/) | `bin/composio/` | Any SaaS tool action via single API — no per-integration setup |
+| [**ai.hmz.agency-email-pickup**](launchagents/) | `launchagents/` | SessionStart hook — auto-reads new agency emails and queues responses |
+| [**ai.hmz.hmz-bdm-catchup**](launchagents/) | `launchagents/` | SessionStart hook — fetches new BDM leads from LinkedIn/Indeed |
+| [**MAE workflow DAG**](workflows/digiminds-daily.json) | `workflows/` | JSON-defined workflow — each step is a TCC task with model routing |
 
 ---
 
-## ⚙️ ARCHITECTURE
+## ⚙️ ARCHITECTURE <a id="architecture"></a>
 
 ```
-┌───────────────────────────────────────────────────────────────────┐
-│                 CLAUDE-AI-AUTOMATIONS v2.0                        │
-│                                                                   │
-│  Trigger → TCC queue → MAE engine → agent swarm → output          │
-│                                                                   │
-│  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐      │
-│  │  Webhook │   │  Cron    │   │  Hook    │   │  Manual  │      │
-│  │ triggers │   │  jobs    │   │  events  │   │  mae run │      │
-│  └────┬─────┘   └────┬─────┘   └────┬─────┘   └────┬─────┘      │
-│       └──────────────┴──────────────┴──────────────┘             │
-│                              │                                    │
-│                    ┌─────────▼─────────┐                         │
-│                    │    TCC QUEUE      │                         │
-│                    │  task routing     │                         │
-│                    └─────────┬─────────┘                         │
-│                              │                                    │
-│              ┌───────────────▼────────────────┐                  │
-│              │       MAE SWARM (12 agents)     │                  │
-│              │  Groq + Gemini + DeepSeek blast │                  │
-│              └───────────────┬────────────────┘                  │
-│                              │                                    │
-│              8159 n8n workflows · OpenCLI · Composio              │
-│              Paperclip sync · GitHub push · Slack notify          │
-└───────────────────────────────────────────────────────────────────┘
-```
+macOS launchd
+    │
+    ├── 3:00am  →  sys-optimize-daily (cache cleanup)
+    ├── 8:00am  →  mae-daily (full DigiMinds ops)
+    ├── Permanent →  Ollama (GPU model server)
+    ├── Permanent →  OpenClaw gateway
+    └── SessionStart → paperclip, email-pickup, bdm-catchup
 
-| Layer | Technology | Count |
-|---|---|---|
-| Workflow library | n8n JSON workflows | 8,159 |
-| Site adapters | OpenCLI | 90+ |
-| SaaS actions | Composio | 3,000+ |
-| Automation agents | MAE registry | 18 |
-| Scheduled jobs | LaunchAgent + cron | Always-on |
-
----
-
-## 🚀 Quick Start
-
-```bash
-# Run full DigiMinds daily ops
 mae daily
-
-# Search for a workflow
-grep -i 'shopify' ~/installed-repos/n8nworkflows.xyz/workflow_index.txt
-
-# Fire 3 parallel tasks
-tcc blast "send weekly report" "update CRM" "post LinkedIn update"
-
-# Deploy a workflow to n8n
-curl -X POST http://localhost:5678/api/v1/workflows -d @workflows/my-flow.json
-
-# Check system status
-tcc-dashboard
+    │
+    ├── Step 1: check_systems (health check all Tier 0 LLMs)
+    ├── Step 2: queue_daily_tasks (add today's tasks to TCC)
+    ├── Step 3: run_pending (fire all pending tasks via MAE swarm)
+    └── Step 4: status_report (summary → tcc-logs/mae-DATE.md)
 ```
 
----
-
-## 💡 TIPS AND TRICKS (48)
-
-<a id="tips-n8n"></a>
-### ■ **n8n Workflows (6)**
-| Tip | Source |
-|---|---|
-| 8159 workflows in index — grep before building anything new | [workflow_index.txt](https://github.com/hmzainjamil/claude-ai-automations) |
-| Import workflow: n8n UI → Workflows → Import from File → paste JSON | [n8n docs](https://docs.n8n.io) |
-| Webhook trigger node = instant external integration with any tool | [n8n](https://n8n.io) |
-| Use Schedule trigger for cron-style daily/hourly automations | [n8n](https://n8n.io) |
-| Error workflow: connect all nodes → send Slack alert on failure | [n8n](https://n8n.io) |
-| Split In Batches node: process 1000s of records without memory issues | [n8n](https://n8n.io) |
-
-<a id="tips-mae"></a>
-### ■ **MAE Engine (6)**
-| Tip | Source |
-|---|---|
-| `mae run "goal"` = 12 agents + synthesis in ~8s — default for all tasks | [mae](https://github.com/hmzainjamil/claude-ai-system) |
-| `mae plan "goal"` = preview decomposition without executing | [mae](https://github.com/hmzainjamil/claude-ai-system) |
-| `mae daily` = full DigiMinds ops — all divisions automated | [mae](https://github.com/hmzainjamil/claude-ai-system) |
-| `mae status` = see running agents, queue depth, last synthesis | [mae](https://github.com/hmzainjamil/claude-ai-system) |
-| Wave batching = cloud APIs first, local Ollama only if RAM > 2GB | [CLAUDE.md](https://github.com/hmzainjamil/claude-ai-system) |
-| All MAE outputs auto-saved to ~/.claude/tcc-logs/ as timestamped MD | [tcc-logs](https://github.com/hmzainjamil/claude-ai-system) |
-
-<a id="tips-codex"></a>
-### ■ **Codex Agents (6)**
-| Tip | Source |
-|---|---|
-| codex-saas-builder: architecture brief → full SaaS MVP with tests | [codex-agents](https://github.com/hmzainjamil/claude-ai-automations) |
-| codex-lead-gen: ICP → scrape → enrich → email sequence → sent | [codex-agents](https://github.com/hmzainjamil/claude-ai-automations) |
-| codex-bug-fixer: bug report → root cause → fix → tests → PR | [codex-agents](https://github.com/hmzainjamil/claude-ai-automations) |
-| codex-content-engine: topic → reel + LinkedIn + YouTube + SEO | [codex-agents](https://github.com/hmzainjamil/claude-ai-automations) |
-| codex-support-agent: knowledge base → AI support → escalation | [codex-agents](https://github.com/hmzainjamil/claude-ai-automations) |
-| Codex loop: understand → plan → execute → test → observe → fix | [Codex](https://openai.com/codex) |
-
-<a id="tips-opencli"></a>
-### ■ **OpenCLI (6)**
-| Tip | Source |
-|---|---|
-| 90+ site adapters — GitHub, LinkedIn, Notion, Jira, Figma, more | [OpenCLI](https://github.com/jackwener/opencli) |
-| Zero LLM cost — Chrome session + adapter, no API calls | [OpenCLI](https://github.com/jackwener/opencli) |
-| `opencli github list-prs --repo owner/repo` — list open PRs | [OpenCLI](https://github.com/jackwener/opencli) |
-| `opencli linkedin search --query "SaaS founder"` — lead scraping | [OpenCLI](https://github.com/jackwener/opencli) |
-| Persistent Chrome session — never re-logs in between calls | [OpenCLI](https://github.com/jackwener/opencli) |
-| Version 1.7.18 installed at /Users/mc/.nvm/versions/node/v24.14.1/bin/ | [npm](https://npmjs.com) |
-
-<a id="tips-composio"></a>
-### ■ **Composio (6)**
-| Tip | Source |
-|---|---|
-| 3000+ tool actions — Salesforce, HubSpot, Notion, Linear, GitHub | [Composio](https://composio.dev) |
-| Single API for all tools — one auth flow, consistent response format | [Composio](https://composio.dev) |
-| Combine Composio + MAE = full business automation in one command | [Composio](https://composio.dev) |
-| composio-openclaw repo wires Composio actions into OpenCLI flow | [hmz-composio-openclaw](https://github.com/hmzainjamil/hmz-composio-openclaw) |
-| Tool actions execute server-side — no browser needed | [Composio](https://composio.dev) |
-| Built-in auth: OAuth, API key, basic — handles token refresh auto | [Composio](https://composio.dev) |
-
-<a id="tips-launchd"></a>
-### ■ **LaunchAgents (6)**
-| Tip | Source |
-|---|---|
-| KeepAlive=true + RunAtLoad=true = always-on service on Mac | [macOS docs](https://developer.apple.com) |
-| Set HOME + PATH in EnvironmentVariables — scripts find all tools | [launchd](https://developer.apple.com) |
-| Load: `launchctl load ~/Library/LaunchAgents/com.xxx.plist` | [launchd](https://developer.apple.com) |
-| Unload: `launchctl unload` then `load` to restart after config change | [launchd](https://developer.apple.com) |
-| Log to /tmp/ — check logs if LaunchAgent fails silently | [launchd](https://developer.apple.com) |
-| openclaw-bridge managed by LaunchAgent — gateway always running | [openclaw](https://github.com/hmzainjamil/hmz-openclaw) |
-
-<a id="tips-hooks-auto"></a>
-### ■ **Auto-Hooks (6)**
-| Tip | Source |
-|---|---|
-| auto-github-push hook fires on every Write/Edit → routes to correct repo | [hooks](https://github.com/hmzainjamil/claude-ai-system) |
-| bin/ files → claude-ai-system repo | skills/ files → claude-ai-skills | [hooks](https://github.com/hmzainjamil/claude-ai-system) |
-| UserPromptSubmit → skill-auto-activate fires before every response | [settings.json](https://github.com/hmzainjamil/claude-ai-system) |
-| Stop hook → session-queue → memory files → next session has full context | [hooks](https://github.com/hmzainjamil/claude-ai-system) |
-| Paperclip sync hook fires on every MAE completion — zero-effort memory | [hooks](https://github.com/hmzainjamil/claude-ai-system) |
-| All hooks run async — never block main conversation thread | [settings.json](https://github.com/hmzainjamil/claude-ai-system) |
-
-<a id="tips-monitoring"></a>
-### ■ **Monitoring (6)**
-| Tip | Source |
-|---|---|
-| tcc-dashboard shows: queue depth, RAM, model health, last run time | [tcc-dashboard](https://github.com/hmzainjamil/claude-ai-system) |
-| All MAE logs saved to ~/.claude/tcc-logs/ — grep for any past run | [tcc-logs](https://github.com/hmzainjamil/claude-ai-system) |
-| Paperclip AI ingests all automation outputs — searchable forever | [Paperclip](https://paperclip.ai) |
-| health.sh pings all models — identifies dead endpoints before blast | [health.sh](https://github.com/hmzainjamil/claude-ai-agents) |
-| n8n built-in execution log — every workflow run logged with payload | [n8n](https://n8n.io) |
-| Slack notify on automation failure — never miss a broken workflow | [slack](https://slack.com) |
+| LaunchAgent | Schedule | Purpose |
+|---|---|---|
+| ai.hmz.mae-daily | 8:00am daily | Full DigiMinds ops |
+| ai.hmz.sys-optimize-daily | 3:00am daily | Cache cleanup |
+| ai.hmz.ollama | Permanent | Local LLM server |
+| ai.hmz.github-portfolio-sync | Daily | GitHub sync |
+| ai.openclaw.gateway | Permanent | Agent relay |
 
 ---
 
-## ☠️ STARTUPS / BUSINESSES
+## 💡 TIPS AND TRICKS (12) <a id="tips"></a>
+
+[launchagent-ops](#tips-la) · [workflow-design](#tips-wf) · [debugging](#tips-debug)
+
+<a id="tips-la"></a>
+■ **LaunchAgent Operations (4)**
+
+| Tip | Source |
+|---|---|
+| Always set both `KeepAlive=true` AND `RunAtLoad=true` — missing either causes silent failures | [Apple launchd docs](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html) |
+| `EnvironmentVariables` dict must include `HOME` and `PATH` — plist jobs have no shell env | [hmzainjamil](https://github.com/hmzainjamil) |
+| `launchctl list | grep ai.hmz` shows all loaded agents and their exit codes | [hmzainjamil](https://github.com/hmzainjamil) |
+| Exit code 256 = permissions error or wrong binary path — check `which` in terminal vs plist | [hmzainjamil](https://github.com/hmzainjamil) |
+
+<a id="tips-wf"></a>
+■ **Workflow Design (4)**
+
+| Tip | Source |
+|---|---|
+| Workflow JSON format: `{"name":"","steps":[{"id":"","task":"","agent":"","model":""}]}` | [hmzainjamil](https://github.com/hmzainjamil) |
+| Each workflow step becomes a TCC task — `tcc fire all` executes all steps in parallel | [hmzainjamil](https://github.com/hmzainjamil) |
+| Use `mae deploy <workflow-name>` to run a specific workflow JSON end-to-end | [hmzainjamil](https://github.com/hmzainjamil) |
+| `grep -i "topic" ~/installed-repos/n8nworkflows.xyz/workflow_index.txt` finds relevant n8n flows | [n8nworkflows.xyz](https://n8nworkflows.xyz) |
+
+<a id="tips-debug"></a>
+■ **Debugging (4)**
+
+| Tip | Source |
+|---|---|
+| `tail -f ~/Library/Logs/ai.hmz.mae-daily.log` watches LaunchAgent stdout in real-time | [hmzainjamil](https://github.com/hmzainjamil) |
+| `launchctl unload && launchctl load` to reload a plist after editing — no restart needed | [Apple](https://developer.apple.com) |
+| `mae status` checks all 12 LaunchAgents, Tier 0 LLMs, and Paperclip in one command | [hmzainjamil](https://github.com/hmzainjamil) |
+| Test plist in shell first: `bash -c "$(ProgramArguments from plist)"` before loading | [hmzainjamil](https://github.com/hmzainjamil) |
+
+---
+
+## ☠️ STARTUPS / BUSINESSES <a id="startups"></a>
 
 | Feature | Replaced |
 |---|---|
-| 8159 n8n workflows | [Zapier](https://zapier.com) 20-step plans |
-| MAE 12-agent swarm | [Make.com](https://make.com) scenarios |
-| OpenCLI 90+ adapters | [Browser.ai](https://browser.ai) |
-| Composio 3000+ actions | [Pipedream](https://pipedream.com) |
-| Codex agent automation | [Relevance AI](https://relevanceai.com) |
-| DigiMinds daily ops | [Notion AI](https://notion.ai) tasks |
-| LaunchAgent always-on | [Heroku](https://heroku.com) scheduler |
-| Paperclip company OS | [Notion](https://notion.so) wiki |
-| Auto-GitHub push hook | [GitHub Actions](https://github.com/features/actions) |
-| Webhook trigger layer | [Segment](https://segment.com) |
-| TCC task queue | [Linear](https://linear.app) |
-| tcc-dashboard monitoring | [Datadog](https://datadoghq.com) |
+| **12 always-on LaunchAgents** | [Zapier](https://zapier.com), [Make.com](https://make.com), [Pipedream](https://pipedream.com) |
+| **Daily MAE ops automation** | [Monday.com AI](https://monday.com), [ClickUp Automations](https://clickup.com) |
+| **Persistent Ollama LLM server** | [Replicate](https://replicate.com), [Together AI](https://together.ai), [Fireworks AI](https://fireworks.ai) |
+| **n8n workflow library (8,159)** | [Zapier Templates](https://zapier.com/templates), [Make.com templates](https://make.com) |
+| **Cache auto-cleanup** | [CleanMyMac X](https://cleanmymac.com), [Disk Diag](https://diskdiag.com) |
 
 ---
 
-## Star History
+## Star History <a id="star"></a>
 
 [![Star History Chart](https://api.star-history.com/svg?repos=hmzainjamil/claude-ai-automations&type=Date)](https://star-history.com/#hmzainjamil/claude-ai-automations&Date)
