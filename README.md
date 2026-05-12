@@ -1,116 +1,111 @@
 # claude-ai-automations
-Production LaunchAgent daemons + Python automation pipelines running DigiMinds 24/7 — lead gen, content, KPI monitoring, GitHub sync, competitor intel.
+macOS LaunchAgent automations — AI-powered cron jobs, sync daemons, and background workers.
 
-![daemons](https://img.shields.io/badge/LaunchAgents-8_always_on-blue?style=flat&labelColor=555) ![scheduled](https://img.shields.io/badge/scheduled_engines-6-green?style=flat&labelColor=555) ![python](https://img.shields.io/badge/python_scripts-12-orange?style=flat&labelColor=555) ![company](https://img.shields.io/badge/DigiMinds-agency-red?style=flat&labelColor=555)
+![launchagents](https://img.shields.io/badge/LaunchAgents-12%2B-blue?style=flat&labelColor=555)
+![platform](https://img.shields.io/badge/platform-macOS-lightgrey?style=flat&labelColor=555)
+![always-on](https://img.shields.io/badge/mode-always_on-green?style=flat&labelColor=555)
+![zero-cost](https://img.shields.io/badge/runtime_cost-zero-brightgreen?style=flat&labelColor=555)
+![license](https://img.shields.io/badge/license-MIT-blue?style=flat&labelColor=555)
 
-[Concepts](#-concepts) · [Hot](#-hot) · [Schedule](#️-schedule) · [Tips](#-tips-and-tricks-22) · [Replaced](#️-startups--businesses) · [Stars](#star-history)
-
----
+[Concepts](#-concepts) · [Architecture](#️-architecture) · [Tips](#-tips-and-tricks-20) · [Kills](#️-startups--businesses) · [Stars](#star-history)
 
 ## 🧠 CONCEPTS
 
 | Feature | Location | Description |
 |---------|----------|-------------|
-| [**LaunchAgent Daemons**](launchagents/) | `~/Library/LaunchAgents/ai.hmz.*.plist` | 8 always-on macOS daemons — KeepAlive=true auto-restarts within 30s of crash |
-| [**GitHub Portfolio Sync**](launchagents/ai.hmz.github-portfolio-sync.plist) | `ai.hmz.github-portfolio-sync.plist` | Daily 6:30 AM — syncs all 45 bin scripts, skills, agents, LaunchAgents to GitHub |
-| [**OpenClaw Gateway**](launchagents/ai.openclaw.gateway.plist) | `ai.openclaw.gateway.plist` | Always-on bridge: Composio + MCP + Paperclip — persistent session state |
-| [**Paperclip CEO**](launchagents/ai.hmz.paperclip.plist) | `ai.hmz.paperclip.plist` | CEO loop daemon at port 3100 — RunAtLoad=true, KeepAlive=true |
-| [**Lead Engine**](launchagents/ai.hmz.paperclip-lead-engine.plist) | `ai.hmz.paperclip-lead-engine.plist` | Daily 7:30 AM — Apollo+LinkedIn scrape → enrich → ICP score → CRM |
-| [**Content Engine**](launchagents/ai.hmz.paperclip-content-engine.plist) | `ai.hmz.paperclip-content-engine.plist` | Daily 8:00 AM — trends → angle → generate → quality gate → LinkedIn schedule |
-| [**KPI Monitor**](launchagents/ai.hmz.paperclip-kpi-monitor.plist) | `ai.hmz.paperclip-kpi-monitor.plist` | Daily 6:00 PM — 28 KPI health checks, threshold alerts, CEO escalation |
-| [**Trends Scanner**](launchagents/ai.hmz.paperclip-trends-scanner.plist) | `ai.hmz.paperclip-trends-scanner.plist` | Mon/Wed/Fri 6 AM — platform changes, market signals, macro trends |
-| [**Python Scripts**](scripts/) | `scripts/` | `digiminds_audit.py` `create_ads.py` `populate_ads.py` `per-prospect-pdf.py` — offline pipeline tools |
+| [**GitHub Portfolio Sync**](launchagents/ai.hmz.github-portfolio-sync.plist) | `launchagents/ai.hmz.github-portfolio-sync.plist` | Daily 6:30 AM — syncs all local scripts to GitHub repos via Contents API [![daily](https://img.shields.io/badge/schedule-6%3A30_AM-blue?style=flat&labelColor=555)] |
+| [**OpenClaw Gateway**](launchagents/ai.openclaw.gateway.plist) | `launchagents/ai.openclaw.gateway.plist` | KeepAlive daemon — Open Design local MCP at 127.0.0.1:51827 |
+| [**Ollama LLM Server**](launchagents/ai.hmz.ollama.plist) | `launchagents/ai.hmz.ollama.plist` | Permanent Ollama server — Llama 3 on GPU, zero API cost |
+| [**Paperclip CEO**](launchagents/ai.hmz.paperclip-ceo.plist) | `launchagents/ai.hmz.paperclip-ceo.plist` | DigiMinds AI CEO loop — 127.0.0.1:3100, company `c5066522` |
+| [**Reddit Poster**](launchagents/ai.hmz.reddit-poster.plist) | `launchagents/ai.hmz.reddit-poster.plist` | Throttled Reddit posting — max 1 post/day (bot-watch compliance) |
+| [**BDM Sweep**](launchagents/ai.hmz.bdm-sweep.plist) | `launchagents/ai.hmz.bdm-sweep.plist` | Morning LinkedIn + Indeed job scan — LinkedIn/Indeed only (no Upwork) |
+| [**Log Rotate**](launchagents/ai.hmz.log-rotate.plist) | `launchagents/ai.hmz.log-rotate.plist` | Weekly cleanup — prunes ~/.claude/logs older than 30 days |
+| [**Auto Troubleshoot**](launchagents/ai.hmz.auto-troubleshoot.plist) | `launchagents/ai.hmz.auto-troubleshoot.plist` | SessionStart check — flags stale LaunchAgents, missing env vars |
 
 ### 🔥 Hot
 
 | Feature | Location | Description |
 |---------|----------|-------------|
-| [**auto-github-push**](../claude-ai-system/automations/bin/auto-github-push) | PostToolUse hook | Every Write/Edit to `~/.claude/bin/` auto-pushes to GitHub — replaces manual github-sync for new scripts |
-| [**KeepAlive + RunAtLoad**](launchagents/) | All `.plist` files | Both flags required — KeepAlive alone doesn't start on boot, RunAtLoad alone doesn't restart on crash |
-| [**Token scrubbing**](../claude-ai-system/automations/bin/github-sync) | `github-sync` | Strips `ghp_*` `sk-*` `pat*` tokens from LaunchAgent plists before GitHub commit — automatic OPSEC |
+| [**Tier 0 Health Check**](launchagents/ai.hmz.tier0-health.plist) | `launchagents/ai.hmz.tier0-health.plist` | Hourly ping to Groq/Gemini/Ollama — logs availability for routing decisions |
+| [**Session Queue Processor**](launchagents/ai.hmz.session-queue.plist) | `launchagents/ai.hmz.session-queue.plist` | Stop hook companion — converts session-queue.jsonl to memory files |
 
----
+## ⚙️ ARCHITECTURE
 
-## ⚙️ SCHEDULE
+```
+LaunchAgent lifecycle:
+  ~/Library/LaunchAgents/ai.hmz.*.plist
+          │
+          ▼ launchctl load
+  System daemon (KeepAlive=true)
+          │
+          ├─ RunAtLoad: fires immediately on load
+          ├─ StartCalendarInterval: cron-style schedule
+          ├─ KeepAlive: restarts on crash
+          └─ EnvironmentVariables: HOME, PATH, GITHUB_TOKEN
+```
 
-| Daemon | Schedule | Runtime | Output |
-|--------|----------|---------|--------|
-| GitHub Portfolio Sync | Daily 6:30 AM | ~3 min | Updated claude-ai-system repo |
-| Paperclip CEO Loop | Every 6h | ~2 min | Decisions log, task assignments |
-| Lead Engine | Daily 7:30 AM | ~6 min | 10-30 ICP-scored leads in CRM |
-| Content Engine | Daily 8:00 AM | ~3 min | LinkedIn post scheduled 10 AM |
-| Intel Engine | Daily 10:00 AM | ~5 min | Competitor intel brief |
-| KPI Monitor | Daily 6:00 PM | ~2 min | 28-KPI scorecard, alerts |
-| Trends Scanner | Mon/Wed/Fri 6 AM | ~4 min | Trends brief → CEO context |
-| OpenClaw Gateway | Always-on | — | Composio + MCP bridge |
+| Agent | Schedule | Runtime | Deps |
+|-------|---------|---------|------|
+| github-portfolio-sync | 06:30 daily | ~30s | gh, python3 |
+| openclaw-gateway | KeepAlive | permanent | node |
+| ollama | KeepAlive | permanent | ollama |
+| paperclip-ceo | KeepAlive | permanent | node |
+| bdm-sweep | 08:00 daily | ~5m | python3, gh |
+| log-rotate | Sunday 02:00 | ~5s | bash |
 
----
+## 💡 TIPS AND TRICKS (20)
 
-## 💡 TIPS AND TRICKS (22)
+[plist](#tips-plist) · [debug](#tips-debug) · [env](#tips-env) · [schedule](#tips-schedule)
 
-[LaunchAgent](#tips-la) · [Scheduling](#tips-sched) · [Scripts](#tips-scripts) · [Pipelines](#tips-pipe) · [Debug](#tips-debug)
-
-<a id="tips-la"></a>■ **LaunchAgent Design (6)**
-
-| Tip | Source |
-|-----|--------|
-| Always use both `KeepAlive=true` AND `RunAtLoad=true` — never one without the other | [macOS SOP](launchagents/) |
-| `StartCalendarInterval` is more reliable than cron on macOS — survives sleep/wake | [macOS docs](launchagents/) |
-| Set `StandardOutPath` and `StandardErrorPath` — silent failures are the worst failures | [Ops rule](launchagents/) |
-| `EnvironmentVariables` in plist must include `HOME` + `PATH` — LaunchAgents don't inherit shell env | [Common gotcha](launchagents/) |
-| Scrub tokens from plist before github-sync commits — use `sed` on `GITHUB_TOKEN` patterns | [OPSEC](../claude-ai-system/automations/bin/github-sync) |
-| `launchctl list \| grep ai.hmz` — verify all 8 daemons running at every session start | [auto-troubleshoot](../claude-ai-system/automations/bin/auto-troubleshoot) |
-
-<a id="tips-sched"></a>■ **Scheduling (4)**
+<a id="tips-plist"></a>■ **Plist Authoring (6)**
 
 | Tip | Source |
 |-----|--------|
-| Lead engine at 7:30 AM not 7:00 AM — gives CEO loop (6h, starting midnight) time to finish | [Schedule logic](launchagents/) |
-| Content engine at 8:00 AM publishes at 10 AM — 2h buffer for quality gate failures | [Schedule logic](launchagents/) |
-| Trends scanner Mon/Wed/Fri only — daily would waste Apify credits on low-signal days | [Cost optimization](launchagents/) |
-| KPI monitor at 6 PM — after business hours data is fully populated for the day | [Data logic](launchagents/) |
+| Always include both `KeepAlive` AND `RunAtLoad` — missing either breaks persistence | [HMZ](https://github.com/hmzainjamil) |
+| `Label` must match filename exactly — `ai.hmz.foo` → `ai.hmz.foo.plist` | [Apple Docs](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html) |
+| Use `StandardOutPath` + `StandardErrorPath` — logs are your only debug channel | [HMZ](https://github.com/hmzainjamil) |
+| `EnvironmentVariables` must include `HOME` + `PATH` — shell profile not sourced | [HMZ](https://github.com/hmzainjamil) |
+| Never use relative paths in plist — always absolute paths for all executables | [HMZ](https://github.com/hmzainjamil) |
+| Test with `launchctl load -w ~/Library/LaunchAgents/ai.hmz.foo.plist` before committing | [HMZ](https://github.com/hmzainjamil) |
 
-<a id="tips-scripts"></a>■ **Python Scripts (5)**
-
-| Tip | Source |
-|-----|--------|
-| All scripts use `set -e` or Python `sys.exit(1)` on error — LaunchAgent catches exit code | [Error handling](scripts/) |
-| Save all PDF outputs to `~/Downloads/` — never Desktop | [HMZ rule](scripts/) |
-| ReportLab PDFs: always `save_document()` before any export step | [reportlab-pdf-master](../claude-ai-skills/) |
-| Use Apify actors for all scraping inside scripts — never raw requests | [Tool routing](scripts/) |
-| Add `time.sleep(1)` between Apollo API calls — bulk operations hit rate limits silently | [Apollo gotcha](scripts/) |
-
-<a id="tips-pipe"></a>■ **Pipelines (4)**
+<a id="tips-debug"></a>■ **Debugging (5)**
 
 | Tip | Source |
 |-----|--------|
-| Every pipeline step must be idempotent — safe to re-run without creating duplicates | [Design principle](scripts/) |
-| Log every step: `echo "[engine] step completed at $(date)" >> ~/Library/Logs/x.log` | [Ops rule](scripts/) |
-| Paperclip API at port 3100 = pipeline state store — don't use files for intermediate state | [Architecture](../hmz-digiminds-ceo/) |
-| Tier 0 models for all LLM calls inside pipelines — Groq for fast, Gemini for analysis | [G0DM0D3 routing](../hmz-g0dm0d3/) |
+| `launchctl list | grep hmz` — check all running agents in one command | [HMZ](https://github.com/hmzainjamil) |
+| Exit code `256` = script not found or permission denied (chmod +x required) | [HMZ](https://github.com/hmzainjamil) |
+| `tail -f ~/.claude/logs/<agent>.log` — real-time agent output during testing | [HMZ](https://github.com/hmzainjamil) |
+| `launchctl unload + load` restarts cleanly — faster than rebooting for testing | [HMZ](https://github.com/hmzainjamil) |
+| `auto-troubleshoot` SessionStart hook catches most common plist issues automatically | [HMZ](https://github.com/hmzainjamil) |
 
-<a id="tips-debug"></a>■ **Debug (3)**
+<a id="tips-env"></a>■ **Environment Variables (4)**
 
 | Tip | Source |
 |-----|--------|
-| LaunchAgent exit=256 = script returned error — check `~/Library/Logs/<name>-error.log` | [Debug SOP](../claude-ai-system/automations/bin/auto-troubleshoot) |
-| `launchctl start ai.hmz.<name>` to test-trigger without waiting for schedule | [Debug](launchagents/) |
-| Mutex lock for long scripts: `[ -f /tmp/script.lock ] && exit 0; touch /tmp/script.lock` | [Concurrency](scripts/) |
+| `GITHUB_TOKEN` in plist — never rely on keychain from LaunchAgent context | [HMZ](https://github.com/hmzainjamil) |
+| `PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin` — cover Apple Silicon + Intel | [HMZ](https://github.com/hmzainjamil) |
+| Rotate tokens by updating plist + `launchctl unload/load` — no reboot needed | [HMZ](https://github.com/hmzainjamil) |
+| Keep secrets out of plist in git — use `.env` file sourced by wrapper script | [HMZ](https://github.com/hmzainjamil) |
 
----
+<a id="tips-schedule"></a>■ **Scheduling (5)**
+
+| Tip | Source |
+|-----|--------|
+| `StartCalendarInterval` beats `StartInterval` — cron-style is more predictable | [Apple Docs](https://developer.apple.com/library/archive/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLaunchdJobs.html) |
+| `{"Hour":6,"Minute":30}` = 6:30 AM daily — use array for multiple times | [HMZ](https://github.com/hmzainjamil) |
+| If machine is asleep at scheduled time, job runs on wake (if `KeepAlive=false`) | [HMZ](https://github.com/hmzainjamil) |
+| KeepAlive daemons restart within 10s of crash — use for MCP servers | [HMZ](https://github.com/hmzainjamil) |
+| Avoid scheduling multiple heavy jobs at same time — stagger by 5-10 minutes | [HMZ](https://github.com/hmzainjamil) |
 
 ## ☠️ STARTUPS / BUSINESSES
 
 | Feature | Replaced |
 |-|-|
-| **macOS LaunchAgent daemons** | [n8n](https://n8n.io), [Zapier](https://zapier.com), [Make](https://make.com) — cloud-only, not local-first, monthly fees |
-| **Lead engine (daily 7:30 AM)** | [Clay](https://clay.com), [Instantly](https://instantly.ai) — manual trigger, per-lead pricing |
-| **Content engine (daily 8 AM)** | [Buffer](https://buffer.com), [Hootsuite](https://hootsuite.com), [Taplio](https://taplio.com) — scheduling only, no AI generation |
-| **Competitor intel (daily 10 AM)** | [Crayon](https://crayon.co), [Klue](https://klue.com) — $500+/mo, no ad library integration |
-| **KPI monitor (daily 6 PM)** | [Databox](https://databox.com), [Klipfolio](https://klipfolio.com) — passive dashboards, no escalation |
-| **GitHub auto-sync** | Manual `git push`, [GitHub Desktop](https://desktop.github.com) |
-
----
+| **LaunchAgent Automation** | [Zapier](https://zapier.com), [Make.com](https://make.com), [IFTTT](https://ifttt.com) |
+| **Always-On MCP Daemons** | [Railway](https://railway.app), [Render](https://render.com) — runs locally at $0 |
+| **Scheduled AI Jobs** | [n8n Cloud](https://n8n.io), [Activepieces](https://activepieces.com) |
+| **Portfolio Sync** | [GitHub Actions](https://github.com/features/actions) — no cloud runner needed |
+| **Log Management** | [Datadog](https://datadoghq.com), [Papertrail](https://papertrailapp.com) |
 
 ## Star History
 
