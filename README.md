@@ -1,5 +1,26 @@
 # claude-ai-automations
 
+<!-- HMZ PORTFOLIO CONTEXT START -->
+<p align="center">
+  <a href="https://github.com/hmzainjamil/claude-ai-automations">Repository</a> ·
+  <a href="https://github.com/hmzainjamil/claude-ai-automations/issues">Issues</a> ·
+  <a href="https://github.com/hmzainjamil/claude-ai-automations/commits/main">Commits</a>
+</p>
+
+<p align="center">
+  <img alt="Last commit" src="https://img.shields.io/github/last-commit/hmzainjamil/claude-ai-automations.svg">
+  <img alt="Repository size" src="https://img.shields.io/github/repo-size/hmzainjamil/claude-ai-automations.svg">
+  <img alt="Visibility" src="https://img.shields.io/badge/visibility-public-blue">
+  <img alt="Status" src="https://img.shields.io/badge/status-active-success">
+</p>
+
+> Portfolio context: active public repository in the HMZ GitHub portfolio. Repository scope, capabilities, commands, and evidence remain defined by the source tree and the sections below.
+
+<!-- HMZ PORTFOLIO CONTEXT END -->
+
+---
+
+
 ![v](https://img.shields.io/badge/version-2.0-blue?style=flat&labelColor=555) ![s](https://img.shields.io/badge/status-active-brightgreen?style=flat&labelColor=555) ![l](https://img.shields.io/badge/license-MIT-orange?style=flat&labelColor=555) ![m](https://img.shields.io/badge/models-Tier0-purple?style=flat&labelColor=555)
 
 > 8,159 n8n workflows + MAE automation engine — email, CRM, Slack, Shopify, social, data, reporting, lead gen. Zero-human ops layer.
